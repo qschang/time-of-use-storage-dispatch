@@ -29,7 +29,7 @@ def test_rerun_is_byte_identical(tmp_path):
  r,o,_=run(tmp_path,case()); before=o.read_bytes(); r,o,_=run(tmp_path,case()); assert r.returncode==0 and o.read_bytes()==before
 @pytest.mark.boundary
 def test_duplicate_key_is_rejected_without_output(tmp_path):
- """“任何输入校验、数值计算或发布失败都必须以非零状态拒收，并保持已有输出字节不变。”"""
+ """“任何输入校验、数值计算或发布失败都必须以非零状态拒收，并保持已有输出字节不变，不留下临时文件或部分结果。”"""
  p=Path(tmp_path); i=p/'in.json'; o=p/'out.json'; i.write_text('{"battery":{},"battery":{},"tariff":{},"steps":[]}'); r=subprocess.run([sys.executable,ENTRY,str(i),str(o)],capture_output=True); assert r.returncode!=0 and not o.exists()
 @pytest.mark.boundary
 def test_boolean_numeric_is_rejected(tmp_path):
