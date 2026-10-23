@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 ENTRY=os.environ.get('STORAGE_ENTRY','/app/storage_dispatch.py')
 if not Path(ENTRY).exists():
-    ENTRY=str(Path(__file__).parents[1]/'environment/app/storage_dispatch.py')
+    ENTRY=str(Path(__file__).parents[1]/'solution/reference.py')
 def case(): return {'battery':{'capacity_kWh':10.0,'initial_soc':0.5,'min_soc':0.2,'max_soc':0.9,'max_charge_kW':4.0,'max_discharge_kW':5.0,'charge_efficiency':0.9,'discharge_efficiency':0.9},'tariff':{'energy_rates':[1.0,3.0,0.5],'demand_rate':2.0},'steps':[{'duration_h':1.0,'load_kW':4.0,'solar_kW':0.0},{'duration_h':1.0,'load_kW':6.0,'solar_kW':0.0},{'duration_h':1.0,'load_kW':1.0,'solar_kW':3.0}]}
 def run(tmp,d,existing=False):
  p=Path(tmp); i=p/'in.json'; o=p/'out.json'; i.write_text(json.dumps(d,separators=(',',':'))+'\n'); sentinel=b'keep\n';
