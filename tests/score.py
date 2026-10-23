@@ -1,4 +1,15 @@
 import argparse,json,xml.etree.ElementTree as ET
 def main():
- p=argparse.ArgumentParser(); p.add_argument('--junit',required=True); p.add_argument('--report-out',required=True); p.add_argument('--reward-out',required=True); p.add_argument('--config',required=False); a=p.parse_args(); root=ET.parse(a.junit).getroot(); suite=root.find('testsuite') or root; total=int(suite.attrib.get('tests',0)); bad=sum(int(suite.attrib.get(k,0)) for k in ('failures','errors','skipped')); reward=1.0 if total==12 and bad==0 else 0.0; json.dump({'schema_version':1,'tests':total,'bad':bad,'reward':reward},open(a.report_out,'w',encoding='utf-8'),ensure_ascii=False,indent=2); open(a.reward_out,'w').write(f'{reward:.3f}\n')
+ p=argparse.ArgumentParser(); p.add_argument('--junit',required=True); p.add_argument('--report-out',required=True); p.add_argument('--reward-out',required=True); p.add_argument('--config',required=True); a=p.parse_args()
+ cfg=json.load(open(a.config,encoding='utf-8')); gate=set(cfg.get('gate_tests',[])); scored=cfg.get('tests',{}); expected=gate|set(scored)
+ root=ET.parse(a.junit).getroot(); suite=root.find('testsuite') or root; cases={x.attrib.get('classname','')+'::'+x.attrib.get('name',''):x for x in suite.findall('.//testcase')}
+ bad=[]
+ for node in expected:
+  c=cases.get(node)
+  if c is None or c.find('failure') is not None or c.find('error') is not None or c.find('skipped') is not None: bad.append(node)
+ extra=set(cases)-expected
+ valid=(len(cases)==len(expected) and not extra and not bad)
+ reward=1.0 if valid else 0.0
+ report={'schema_version':1,'expected':sorted(expected),'observed':sorted(cases),'missing':sorted(expected-set(cases)),'extra':sorted(extra),'bad':sorted(bad),'reward':reward}
+ json.dump(report,open(a.report_out,'w',encoding='utf-8'),ensure_ascii=False,indent=2); open(a.reward_out,'w').write(f'{reward:.3f}\n')
 if __name__=='__main__': main()
