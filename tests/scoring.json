@@ -1,0 +1,1 @@
+{"schema_version":1,"gate_tests":["test_dispatch_schema_and_summary","test_discharge_respects_power_and_soc_bounds","test_time_of_use_cost_and_demand_peak_are_separate"],"tests":{},"weight_policy":{"basis":"business_priority","core_min_share":0.5,"version":1}}
