@@ -60,3 +60,8 @@ def test_total_cost_equals_components(tmp_path):
 def test_no_simultaneous_charge_and_discharge(tmp_path):
  """“电池可以充电或放电，但不能同时进行；充放电功率、SOC 上下界和效率均必须满足。”"""
  r,o,_,_=run(tmp_path,case()); assert all(not (s['charge_kW']>0 and s['discharge_kW']>0) for s in json.loads(o.read_text())['steps'])
+
+@pytest.mark.recovery
+def test_missing_output_parent_is_rejected_without_creation(tmp_path):
+ """“发布失败必须非零拒收，不能创建缺失的结果父目录或留下部分结果。”"""
+ d=case(); i=Path(tmp_path)/'in.json'; i.write_text(json.dumps(d,separators=(',',':'))+'\n'); parent=Path(tmp_path)/'missing'; o=parent/'out.json'; r=subprocess.run([sys.executable,ENTRY,str(i),str(o)],capture_output=True); assert r.returncode!=0; assert not parent.exists(); assert not o.exists()

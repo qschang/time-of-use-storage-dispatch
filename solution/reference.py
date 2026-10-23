@@ -76,7 +76,8 @@ def main():
         document = json.loads(input_path.read_text(encoding="utf-8"), object_pairs_hook=unique_pairs)
         result = dispatch(*validate(document))
         temporary = output_path.with_name("." + output_path.name + ".tmp")
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        if not output_path.parent.is_dir():
+            reject("IO_FAILURE")
         temporary.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
         os.replace(temporary, output_path)
     except SystemExit:
