@@ -56,9 +56,15 @@ def dispatch(battery, tariff, steps):
         duration = step["duration_h"]
         net = step["load_kW"] - step["solar_kW"]
         discharge_room = (soc - battery["min_soc"]) * battery["capacity_kWh"] * battery["discharge_efficiency"] / duration
-        discharge = min(max(net, 0.0), battery["max_discharge_kW"], max(discharge_room, 0.0))
         charge_room = (battery["max_soc"] - soc) * battery["capacity_kWh"] / (battery["charge_efficiency"] * duration)
-        charge = min(max(-net, 0.0), battery["max_charge_kW"], max(charge_room, 0.0))
+        future_peak = max((s["load_kW"] - s["solar_kW"] for s in steps[index + 1:]), default=0.0)
+        future_rate = max(tariff["energy_rates"][index + 1:], default=tariff["energy_rates"][index])
+        if net >= 0 and future_peak > net and tariff["energy_rates"][index] < future_rate:
+            charge = min(battery["max_charge_kW"], max(charge_room, 0.0))
+            discharge = 0.0
+        else:
+            discharge = min(max(net, 0.0), battery["max_discharge_kW"], max(discharge_room, 0.0))
+            charge = min(max(-net, 0.0), battery["max_charge_kW"], max(charge_room, 0.0))
         grid = net - discharge + charge
         soc += (charge * battery["charge_efficiency"] - discharge / battery["discharge_efficiency"]) * duration / battery["capacity_kWh"]
         cost = grid * duration * tariff["energy_rates"][index]

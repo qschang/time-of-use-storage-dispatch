@@ -65,3 +65,9 @@ def test_no_simultaneous_charge_and_discharge(tmp_path):
 def test_missing_output_parent_is_rejected_without_creation(tmp_path):
  """“发布失败必须非零拒收，不能创建缺失的结果父目录或留下部分结果。”"""
  d=case(); i=Path(tmp_path)/'in.json'; i.write_text(json.dumps(d,separators=(',',':'))+'\n'); parent=Path(tmp_path)/'missing'; o=parent/'out.json'; r=subprocess.run([sys.executable,ENTRY,str(i),str(o)],capture_output=True); assert r.returncode!=0; assert not parent.exists(); assert not o.exists()
+
+@pytest.mark.core
+def test_low_price_precharge_reduces_later_demand_peak(tmp_path):
+ """“调度需要统筹整个账期的能量费与需量费，不能只根据当前时段作局部决定。”"""
+ d={'battery':{'capacity_kWh':10.0,'initial_soc':0.5,'min_soc':0.2,'max_soc':0.9,'max_charge_kW':2.0,'max_discharge_kW':2.0,'charge_efficiency':1.0,'discharge_efficiency':1.0},'tariff':{'energy_rates':[1.0,10.0,10.0],'demand_rate':20.0},'steps':[{'duration_h':1.0,'load_kW':1.0,'solar_kW':0.0},{'duration_h':1.0,'load_kW':5.0,'solar_kW':0.0},{'duration_h':1.0,'load_kW':5.0,'solar_kW':0.0}]}
+ r,o,_,_=run(tmp_path,d); x=json.loads(o.read_text()); assert r.returncode==0; assert x['steps'][0]['charge_kW']==pytest.approx(2.0); assert x['summary']['peak_grid_kW']==pytest.approx(3.0)
