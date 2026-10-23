@@ -30,23 +30,23 @@ def test_rerun_is_byte_identical(tmp_path):
 @pytest.mark.boundary
 def test_duplicate_key_is_rejected_without_output(tmp_path):
  """“任何输入校验、数值计算或发布失败都必须以非零状态拒收，并保持已有输出字节不变，不留下临时文件或部分结果。”"""
- p=Path(tmp_path); i=p/'in.json'; o=p/'out.json'; i.write_text('{"battery":{},"battery":{},"tariff":{},"steps":[]}'); r=subprocess.run([sys.executable,ENTRY,str(i),str(o)],capture_output=True); assert r.returncode!=0 and not o.exists()
+ p=Path(tmp_path); i=p/'in.json'; o=p/'out.json'; i.write_text('{"battery":{},"battery":{},"tariff":{},"steps":[]}'); r=subprocess.run([sys.executable,ENTRY,str(i),str(o)],capture_output=True); assert r.returncode!=0; assert not o.exists(); assert not list(p.glob('.*.tmp'))
 @pytest.mark.boundary
 def test_boolean_numeric_is_rejected(tmp_path):
  """“数值必须有限，SOC 位于 `[0,1]`。”"""
- d=case(); d['battery']['capacity_kWh']=True; r,o,_=run(tmp_path,d); assert r.returncode!=0 and not o.exists()
+ d=case(); d['battery']['capacity_kWh']=True; r,o,_=run(tmp_path,d); assert r.returncode!=0; assert not o.exists(); assert not list(Path(tmp_path).glob('.*.tmp'))
 @pytest.mark.boundary
 def test_soc_order_is_rejected(tmp_path):
  """“SOC 位于 `[0,1]` 且满足 `min_soc <= initial_soc <= max_soc`。”"""
- d=case(); d['battery']['min_soc']=0.8; d['battery']['initial_soc']=0.5; r,o,_=run(tmp_path,d); assert r.returncode!=0 and not o.exists()
+ d=case(); d['battery']['min_soc']=0.8; d['battery']['initial_soc']=0.5; r,o,_=run(tmp_path,d); assert r.returncode!=0; assert not o.exists(); assert not list(Path(tmp_path).glob('.*.tmp'))
 @pytest.mark.boundary
 def test_rate_length_must_match_steps(tmp_path):
  """“`tariff` 恰好包含与步骤数相同的非负 `energy_rates`。”"""
- d=case(); d['tariff']['energy_rates']=[1]; r,o,_=run(tmp_path,d); assert r.returncode!=0 and not o.exists()
+ d=case(); d['tariff']['energy_rates']=[1]; r,o,_=run(tmp_path,d); assert r.returncode!=0; assert not o.exists(); assert not list(Path(tmp_path).glob('.*.tmp'))
 @pytest.mark.recovery
 def test_existing_output_survives_rejection(tmp_path):
  """“保持已有输出字节不变，不留下临时文件或部分结果。”"""
- d=case(); d['steps'][0]['duration_h']=0; r,o,s=run(tmp_path,d,True); assert r.returncode!=0 and o.read_bytes()==s and not list(Path(tmp_path).glob('.*.tmp'))
+ d=case(); d['steps'][0]['duration_h']=0; r,o,s=run(tmp_path,d,True); assert r.returncode!=0; assert o.read_bytes()==s; assert not list(Path(tmp_path).glob('.*.tmp')); assert not (Path(tmp_path)/'report.json').exists(); assert not (Path(tmp_path)/'journal.log').exists(); assert not (Path(tmp_path)/'summary.json').exists()
 @pytest.mark.core
 def test_total_cost_equals_components(tmp_path):
  """“摘要输出 `energy_cost`、`demand_charge`、`total_cost`。”"""
