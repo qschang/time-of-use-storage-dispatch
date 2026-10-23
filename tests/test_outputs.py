@@ -94,7 +94,7 @@ def test_no_simultaneous_charge_and_discharge(tmp_path):
 @pytest.mark.recovery
 def test_missing_output_parent_is_rejected_without_creation(tmp_path):
  """“发布失败必须非零拒收，不能创建缺失的结果父目录或留下部分结果。”"""
- d=case(); i=Path(tmp_path)/'in.json'; i.write_text(json.dumps(d,separators=(',',':'))+'\n'); parent=Path(tmp_path)/'missing'; o=parent/'out.json'; r=subprocess.run([sys.executable,ENTRY,str(i),str(o)],capture_output=True); assert r.returncode!=0; assert not parent.exists(); assert not o.exists()
+ d=case(); i=Path(tmp_path)/'in.json'; i.write_text(json.dumps(d,separators=(',',':'))+'\n'); parent=Path(tmp_path)/'missing'; o=parent/'out.json'; r=subprocess.run([sys.executable,ENTRY,str(i),str(o)],capture_output=True); assert r.returncode!=0; assert not parent.exists(); assert not o.exists(); assert not (Path(tmp_path)/'report.json').exists(); assert not (Path(tmp_path)/'journal.log').exists(); assert not (Path(tmp_path)/'summary.json').exists()
 
 @pytest.mark.core
 def test_low_price_precharge_reduces_later_demand_peak(tmp_path):

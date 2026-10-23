@@ -13,7 +13,7 @@ def main():
  extra=set(cases)-expected_short
  valid=(len(cases)==len(expected_short) and not extra and not bad)
  reward=1.0 if valid else 0.0
- report={'schema_version':1,'expected':sorted(expected_short),'observed':sorted(cases),'missing':sorted(expected_short-set(cases)),'extra':sorted(extra),'bad':sorted(bad),'reward':reward}
+ report={'schema_version':1,'status':'COMPLETED' if valid else 'INCOMPLETE','expected':sorted(expected_short),'observed':sorted(cases),'missing':sorted(expected_short-set(cases)),'extra':sorted(extra),'bad':sorted(bad),'reward':reward}
  json.dump(report,open(a.report_out,'w',encoding='utf-8'),ensure_ascii=False,indent=2)
  try: os.chmod(a.reward_out,0o644)
  except OSError: pass
