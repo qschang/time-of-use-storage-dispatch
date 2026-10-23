@@ -1,4 +1,4 @@
-import argparse,json,xml.etree.ElementTree as ET
+import argparse,json,os,xml.etree.ElementTree as ET
 def main():
  p=argparse.ArgumentParser(); p.add_argument('--junit',required=True); p.add_argument('--report-out',required=True); p.add_argument('--reward-out',required=True); p.add_argument('--config',required=True); a=p.parse_args()
  cfg=json.load(open(a.config,encoding='utf-8')); gate=set(cfg.get('gate_tests',[])); scored=cfg.get('tests',{}); expected=gate|set(scored)
@@ -11,5 +11,8 @@ def main():
  valid=(len(cases)==len(expected) and not extra and not bad)
  reward=1.0 if valid else 0.0
  report={'schema_version':1,'expected':sorted(expected),'observed':sorted(cases),'missing':sorted(expected-set(cases)),'extra':sorted(extra),'bad':sorted(bad),'reward':reward}
- json.dump(report,open(a.report_out,'w',encoding='utf-8'),ensure_ascii=False,indent=2); open(a.reward_out,'w').write(f'{reward:.3f}\n')
+ json.dump(report,open(a.report_out,'w',encoding='utf-8'),ensure_ascii=False,indent=2)
+ try: os.chmod(a.reward_out,0o644)
+ except OSError: pass
+ open(a.reward_out,'w').write(f'{reward:.3f}\n')
 if __name__=='__main__': main()
